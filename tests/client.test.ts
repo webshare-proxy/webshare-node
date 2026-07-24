@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { Webshare, WebshareError, APIConnectionTimeoutError, VERSION } from '../src/index.js';
-import { TestServer, empty, json, page } from './server.js';
+import { TestServer, json, page, text } from './server.js';
 import type { ServerResponse } from 'node:http';
 
 let server: TestServer;
@@ -67,10 +67,11 @@ describe('client construction', () => {
 describe('unauthenticated mode', () => {
   test('unauthenticated clients can call unauthenticated operations (no Authorization sent)', async () => {
     const client = new Webshare({ unauthenticated: true, baseURL: server.url });
-    server.respond(json(200, { token: 't' }), json(200, { referral_code: 'x', promo_type: null, promo_value: null }));
-    await client.auth.login({ email: 'a@b.c', password: 'p', recaptcha: 'r' });
-    expect(server.lastRequest.headers['authorization']).toBeUndefined();
+    server.respond(json(200, { referral_code: 'x', promo_type: null, promo_value: null }));
     await client.referral.getCodeInfo({ referral_code: 'x' });
+    expect(server.lastRequest.headers['authorization']).toBeUndefined();
+    server.respond(text(200, '10.1.2.3:9421:user:pass\n'));
+    await client.proxies.download({ token: 'tok' });
     expect(server.lastRequest.headers['authorization']).toBeUndefined();
   });
 
@@ -80,24 +81,13 @@ describe('unauthenticated mode', () => {
     expect(server.requests).toHaveLength(0);
   });
 
-  test('auth-optional operations send credentials when available, none otherwise', async () => {
-    const authed = makeClient();
-    server.respond(json(200, { token: 't' }));
-    await authed.auth.completeActivation({ activation_token: 'x' });
-    expect(server.lastRequest.headers['authorization']).toBe('Token test-key');
-
-    const anonymous = new Webshare({ unauthenticated: true, baseURL: server.url });
-    server.respond(json(200, { token: 't' }));
-    await anonymous.auth.completeActivation({ activation_token: 'x' });
-    expect(server.lastRequest.headers['authorization']).toBeUndefined();
-  });
-
   test('a credentialed client never sends Authorization on security-exempt operations', async () => {
     const client = makeClient();
-    server.respond(empty(204), json(200, { token: 't' }));
-    await client.auth.requestPasswordReset({ email: 'a@b.c', recaptcha: 'r' });
+    server.respond(json(200, { referral_code: 'x', promo_type: null, promo_value: null }));
+    await client.referral.getCodeInfo({ referral_code: 'x' });
     expect(server.lastRequest.headers['authorization']).toBeUndefined();
-    await client.auth.completePasswordReset({ password: 'p', password_reset_token: 't', recaptcha: 'r' });
+    server.respond(text(200, 'Time,Hostname\n'));
+    await client.proxyActivity.download({ download_token: 'key' });
     expect(server.lastRequest.headers['authorization']).toBeUndefined();
   });
 });

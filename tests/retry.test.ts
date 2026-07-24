@@ -51,22 +51,22 @@ describe('retries', () => {
   test('does not retry POST by default', async () => {
     const client = makeClient();
     server.respond(json(429, { detail: 'Request was throttled.' }));
-    await expect(client.apiKeys.create({ label: 'k' })).rejects.toBeInstanceOf(RateLimitError);
+    await expect(client.ipAuthorizations.create({ ip_address: '1.2.3.4' })).rejects.toBeInstanceOf(RateLimitError);
     expect(server.requests).toHaveLength(1);
   });
 
   test('retries POST when opted in per request', async () => {
     const client = makeClient();
-    server.respond(json(500, { detail: 'boom' }), json(200, { id: 1, key: 'k', label: 'k' }));
-    const created = await client.apiKeys.create({ label: 'k' }, { retryNonIdempotent: true });
+    server.respond(json(500, { detail: 'boom' }), json(200, { id: 1, ip_address: '1.2.3.4' }));
+    const created = await client.ipAuthorizations.create({ ip_address: '1.2.3.4' }, { retryNonIdempotent: true });
     expect(created.id).toBe(1);
     expect(server.requests).toHaveLength(2);
   }, 10_000);
 
   test('retries POST when opted in on the client', async () => {
     const client = makeClient({ retryNonIdempotent: true });
-    server.respond(json(503, { detail: 'unavailable' }), json(200, { id: 1, key: 'k', label: 'k' }));
-    const created = await client.apiKeys.create({ label: 'k' });
+    server.respond(json(503, { detail: 'unavailable' }), json(200, { id: 1, ip_address: '1.2.3.4' }));
+    const created = await client.ipAuthorizations.create({ ip_address: '1.2.3.4' });
     expect(created.id).toBe(1);
     expect(server.requests).toHaveLength(2);
   }, 10_000);

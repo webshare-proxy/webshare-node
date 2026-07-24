@@ -196,13 +196,6 @@ describe('ipAuthorizations / subusers', () => {
 });
 
 describe('account resources', () => {
-  test('apiKeys.create returns the full key', async () => {
-    server.respond(json(200, { id: 1337, key: 'abc1234zzz', label: 'server1 key' }));
-    const created = await client.apiKeys.create({ label: 'server1 key' });
-    expect(created.key).toBe('abc1234zzz');
-    expect(server.lastRequest.url).toBe('/api/v2/apikey/');
-  });
-
   test('profile get and updatePreferences', async () => {
     server.respond(json(200, { id: 1, email: 'user@webshare.io' }), json(200, { id: 1 }));
     const profile = await client.profile.get();
@@ -220,34 +213,11 @@ describe('account resources', () => {
     expect(server.lastRequest.url).toBe('/api/v2/notification/13/dismiss/');
   });
 
-  test('auth.getActivation and logout', async () => {
-    server.respond(json(200, { email_is_verified: false }), empty(204));
-    const activation = await client.auth.getActivation();
-    expect(activation.email_is_verified).toBe(false);
-    await client.auth.logout();
-    expect(server.lastRequest.method).toBe('POST');
-    expect(server.lastRequest.url).toBe('/api/v2/logout/');
-  });
-
-  test('auth.login is sent without an Authorization header', async () => {
-    server.respond(json(200, { token: 't' }));
-    await client.auth.login({ email: 'a@b.c', password: 'p', recaptcha: 'r' });
-    expect(server.lastRequest.headers['authorization']).toBeUndefined();
-    expect(server.lastRequest.url).toBe('/api/v2/login/');
-  });
-
-  test('twoFactorAuth.getMethod uses the current path', async () => {
-    server.respond(json(200, { id: 137, type: 'device_totp', active: true }));
-    const method = await client.twoFactorAuth.getMethod();
-    expect(method.type).toBe('device_totp');
-    expect(server.lastRequest.url).toBe('/api/v2/twofactorauth/method/current/');
-  });
-
-  test('idVerification.start POSTs', async () => {
-    server.respond(json(200, { id: 1, state: 'pending', client_secret: 's' }));
-    const idv = await client.idVerification.start();
-    expect(idv.client_secret).toBe('s');
-    expect(server.lastRequest.url).toBe('/api/v2/idverification/start/');
+  test('idVerification.get reads the verification state', async () => {
+    server.respond(json(200, { id: 1, state: 'not-required', client_secret: null }));
+    const idv = await client.idVerification.get();
+    expect(idv.state).toBe('not-required');
+    expect(server.lastRequest.url).toBe('/api/v2/idverification/');
   });
 });
 
@@ -352,17 +322,18 @@ describe('commerce resources', () => {
     expect(cancelled.payment_method).toBeNull();
   });
 
-  test('plans list/upgrade/cancel', async () => {
+  test('plans list/update/cancel', async () => {
     server.respond(
       page([{ id: 2, status: 'active' }]),
-      json(200, { payment_required: false, plan: 3 }),
+      json(200, { id: 2, automatic_refresh_next_at: '2022-06-14T11:58:10Z' }),
       json(200, { success: true, transaction: 12 }),
     );
     const plans = await client.plans.list();
     expect(plans.results[0]?.id).toBe(2);
-    const upgraded = await client.plans.upgrade(2, { term: 'monthly', payment_method: null });
-    expect(upgraded.payment_required).toBe(false);
-    expect(server.lastRequest.url).toBe('/api/v2/subscription/plan/2/upgrade/');
+    const updated = await client.plans.update(2, { automatic_refresh_next_at: '2022-06-14T11:58:10Z' });
+    expect(updated.id).toBe(2);
+    expect(server.lastRequest.method).toBe('PATCH');
+    expect(server.lastRequest.url).toBe('/api/v2/subscription/plan/2/');
     const cancelled = await client.plans.cancel(2);
     expect(cancelled.success).toBe(true);
     expect(server.lastRequest.url).toBe('/api/v2/subscription/plan/2/cancel/');

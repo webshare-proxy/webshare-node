@@ -82,7 +82,7 @@ const client = new Webshare({ credentials: async () => refreshTokenSomehow() });
 
 The constructor throws if no credential is available (an empty-string
 `apiKey` is treated as absent). To use only endpoints that require no
-authentication (e.g. `auth.login`, `referral.getCodeInfo`, the download
+authentication (`referral.getCodeInfo` and the tokenized download
 endpoints), opt out explicitly with `new Webshare({ unauthenticated: true })`;
 calling an authenticated endpoint on such a client throws a clear
 client-side error. Operations the API documents as unauthenticated never
@@ -129,18 +129,19 @@ import { APIError, PermissionDeniedError } from "webshare";
 try {
   await client.profile.get();
 } catch (err) {
-  if (err instanceof PermissionDeniedError && err.code === "2fa_needed") {
-    // submit a 2FA code, then retry
+  if (err instanceof PermissionDeniedError && err.code === "account_suspended") {
+    // the account is suspended; see the verification APIs
   } else if (err instanceof APIError) {
     console.error(err.status, err.detail, err.fieldErrors, err.requestID);
   }
 }
 ```
 
-`code` carries the API's machine-readable error code (e.g. `2fa_needed`,
-`account_suspended`, or `api_key_not_allowed` for the session-token-only
-endpoints such as `apiKeys.*` and `twoFactorAuth.getMethod`), `fieldErrors`
-carries per-field validation messages,
+`code` carries the API's machine-readable error code — with an API key you
+may see `account_suspended` or `account_deleted` on any call. (If you plug in
+a login token via a credentials provider, calls can also return 403
+`2fa_needed`; completing the two-factor challenge is a dashboard/session
+flow.) `fieldErrors` carries per-field validation messages,
 `requestID` echoes the `X-Request-ID` response header, and `retryAfter`
 exposes the parsed `Retry-After` header in seconds (useful to self-throttle
 calls the SDK does not retry). A 2xx response whose body cannot be decoded
@@ -211,13 +212,12 @@ bytes as a `Uint8Array`.
 
 The client mirrors the API's resource groups: `proxies`, `proxyConfig`,
 `proxyReplacements`, `replacedProxies`, `stats`, `proxyActivity`,
-`downloadTokens`, `ipAuthorizations`, `subusers`, `apiKeys`, `profile`,
-`notifications`, `auth`, `twoFactorAuth`, `idVerification`, `verification`
-(with nested `flows`, `questions`, `appeals`, `abuseReports`), `billing`,
-`paymentMethods`, `pendingPayments`, `transactions`, `subscription`, `plans`,
-`invoices` and `referral`. See the [API documentation](https://apidocs.webshare.io)
-for endpoint semantics; every documented operation is available as a typed
-method.
+`downloadTokens`, `ipAuthorizations`, `subusers`, `profile`,
+`notifications`, `idVerification`, `verification` (with nested `flows`,
+`questions`, `appeals`, `abuseReports`), `billing`, `paymentMethods`,
+`pendingPayments`, `transactions`, `subscription`, `plans`, `invoices` and
+`referral`. See the [API documentation](https://apidocs.webshare.io) for
+endpoint semantics.
 
 Runnable examples live in [`examples/`](./examples) (`npx tsx examples/list-proxies.ts`).
 

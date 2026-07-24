@@ -131,7 +131,7 @@ describe('error mapping', () => {
   test('exposes retryAfter (seconds) on non-retried errors', async () => {
     const client = makeClient();
     server.respond(json(429, { detail: 'Request was throttled.' }, { 'retry-after': '7' }));
-    const err = (await client.apiKeys.create({ label: 'k' }).catch((e: unknown) => e)) as APIError;
+    const err = (await client.ipAuthorizations.create({ ip_address: '1.2.3.4' }).catch((e: unknown) => e)) as APIError;
     expect(err).toBeInstanceOf(RateLimitError);
     expect(err.retryAfter).toBe(7);
   });
@@ -140,7 +140,7 @@ describe('error mapping', () => {
     const client = makeClient();
     const future = new Date(Date.now() + 30_000).toUTCString();
     server.respond(json(429, { detail: 'throttled' }, { 'retry-after': future }));
-    const err = (await client.apiKeys.create({ label: 'k' }).catch((e: unknown) => e)) as APIError;
+    const err = (await client.ipAuthorizations.create({ ip_address: '1.2.3.4' }).catch((e: unknown) => e)) as APIError;
     expect(err.retryAfter).toBeGreaterThan(20);
     expect(err.retryAfter).toBeLessThanOrEqual(30);
   });
@@ -153,7 +153,7 @@ describe('error mapping', () => {
   ])('treats Retry-After %j (%s) as absent', async (headerValue) => {
     const client = makeClient();
     server.respond(json(429, { detail: 'throttled' }, { 'retry-after': headerValue }));
-    const err = (await client.apiKeys.create({ label: 'k' }).catch((e: unknown) => e)) as APIError;
+    const err = (await client.ipAuthorizations.create({ ip_address: '1.2.3.4' }).catch((e: unknown) => e)) as APIError;
     expect(err.retryAfter).toBeNull();
   });
 
@@ -190,7 +190,7 @@ describe('success-path decode failures', () => {
   test('a malformed pagination envelope throws ResponseDecodeError', async () => {
     const client = makeClient();
     server.respond(json(200, { unexpected: 'shape' }));
-    const err = (await client.apiKeys.list().catch((e: unknown) => e)) as ResponseDecodeError;
+    const err = (await client.notifications.list().catch((e: unknown) => e)) as ResponseDecodeError;
     expect(err).toBeInstanceOf(ResponseDecodeError);
     expect(err.message).toContain('pagination envelope');
   });

@@ -17,11 +17,8 @@ import { ProxyActivity } from './resources/proxy-activity.js';
 import { DownloadTokens } from './resources/download-tokens.js';
 import { IPAuthorizations } from './resources/ip-authorizations.js';
 import { Subusers } from './resources/subusers.js';
-import { APIKeys } from './resources/api-keys.js';
 import { Profile } from './resources/profile.js';
 import { Notifications } from './resources/notifications.js';
-import { Auth } from './resources/auth.js';
-import { TwoFactorAuth } from './resources/two-factor-auth.js';
 import { IDVerification } from './resources/id-verification.js';
 import { Verification } from './resources/verification.js';
 import { Billing } from './resources/billing.js';
@@ -59,7 +56,7 @@ export interface ClientOptions {
   credentials?: CredentialsProvider;
   /**
    * Construct the client without credentials. Only operations that do not
-   * require authentication (e.g. `auth.login`, `referral.getCodeInfo`, the
+   * require authentication (`referral.getCodeInfo` and the tokenized
    * download endpoints) can be called; authenticated operations throw a
    * client-side error.
    */
@@ -144,11 +141,8 @@ export interface APIRequest {
   body?: unknown;
   /** multipart/form-data request body (mutually exclusive with `body`). */
   form?: FormData;
-  /**
-   * Whether to send the `Authorization` header. Default true. `'optional'`
-   * sends it only when credentials are available.
-   */
-  auth?: boolean | 'optional';
+  /** Whether to send the `Authorization` header. Default true. */
+  auth?: boolean;
   /** How to decode the response. Default `json`. */
   responseType?: 'json' | 'text' | 'binary' | 'void';
 }
@@ -194,11 +188,8 @@ export class Webshare {
   readonly downloadTokens: DownloadTokens;
   readonly ipAuthorizations: IPAuthorizations;
   readonly subusers: Subusers;
-  readonly apiKeys: APIKeys;
   readonly profile: Profile;
   readonly notifications: Notifications;
-  readonly auth: Auth;
-  readonly twoFactorAuth: TwoFactorAuth;
   readonly idVerification: IDVerification;
   readonly verification: Verification;
   readonly billing: Billing;
@@ -247,11 +238,8 @@ export class Webshare {
     this.downloadTokens = new DownloadTokens(this);
     this.ipAuthorizations = new IPAuthorizations(this);
     this.subusers = new Subusers(this);
-    this.apiKeys = new APIKeys(this);
     this.profile = new Profile(this);
     this.notifications = new Notifications(this);
-    this.auth = new Auth(this);
-    this.twoFactorAuth = new TwoFactorAuth(this);
     this.idVerification = new IDVerification(this);
     this.verification = new Verification(this);
     this.billing = new Billing(this);
@@ -424,8 +412,7 @@ export class Webshare {
     if (req.body !== undefined) {
       headers.set('Content-Type', 'application/json');
     }
-    const auth = req.auth ?? true;
-    if (auth === true) {
+    if (req.auth !== false) {
       if (this.credentials === null) {
         throw new WebshareError(
           'This operation requires authentication, but the client was constructed with ' +
@@ -433,8 +420,6 @@ export class Webshare {
             'authenticated endpoints.',
         );
       }
-      headers.set('Authorization', authorizationHeader(await this.credentials()));
-    } else if (auth === 'optional' && this.credentials !== null) {
       headers.set('Authorization', authorizationHeader(await this.credentials()));
     }
     for (const [name, value] of Object.entries(this.defaultHeaders)) {

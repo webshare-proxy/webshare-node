@@ -1,12 +1,7 @@
 import type { RequestOptions } from '../client.js';
 import type { Page } from '../pagination.js';
 import type { CountMap } from './shared.js';
-import type {
-  CheckoutResponse,
-  PlanConfigurationParams,
-  ProxySubtype,
-  ProxyType,
-} from './subscription.js';
+import type { ProxySubtype, ProxyType } from './subscription.js';
 import { APIResource } from './base.js';
 
 /** A plan. A new plan object is created each time the customer re-customizes. */
@@ -82,17 +77,6 @@ export interface PlanUpdateParams {
   automatic_refresh_next_at?: string;
 }
 
-export interface PlanUpgradeParams extends PlanConfigurationParams {
-  /**
-   * Payment method: `null` uses the payment on file, a number is an existing
-   * Webshare PaymentMethod ID, and a string is a new Stripe PaymentMethod ID
-   * (usually `pm_...`).
-   */
-  payment_method?: number | string | null;
-  /** The recaptcha token. Only required when a payment is required. */
-  recaptcha?: string;
-}
-
 /** Response of cancelling a plan. */
 export interface PlanCancelResponse {
   success: boolean;
@@ -114,18 +98,6 @@ export class Plans extends APIResource {
   /** Updates a plan. Only `automatic_refresh_next_at` can be updated. */
   update(id: number, params: PlanUpdateParams, options?: RequestOptions): Promise<Plan> {
     return this._client.request({ method: 'PATCH', path: `/api/v2/subscription/plan/${id}/`, body: params }, options);
-  }
-
-  /**
-   * Upgrades an existing plan; the subscription is credited for the remaining
-   * duration/bandwidth. Requires recaptcha only when a payment is required
-   * (in which case the docs say to use the dashboard instead).
-   */
-  upgrade(id: number, params: PlanUpgradeParams, options?: RequestOptions): Promise<CheckoutResponse> {
-    return this._client.request(
-      { method: 'POST', path: `/api/v2/subscription/plan/${id}/upgrade/`, body: params },
-      options,
-    );
   }
 
   /** Cancels a plan; the subscription is credited for what is left in it. */

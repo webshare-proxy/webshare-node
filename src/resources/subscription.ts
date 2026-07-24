@@ -187,51 +187,6 @@ export interface SubscriptionPricing {
   } | null;
 }
 
-/**
- * The shared response shape of purchase/upgrade/renew. When
- * `payment_required` is true, confirm the Stripe PaymentIntent with Stripe.js
- * and poll the pending payment.
- */
-export interface CheckoutResponse {
-  /** If false, the purchase is completed and the account has the new plan. */
-  payment_required: boolean;
-  /** The ID of the new Plan object. */
-  plan: number;
-  /** The ID of the PendingPayment instance. Only present if `payment_required` is true. */
-  pending_payment?: number;
-  /** The client_secret for the Stripe PaymentIntent. Only present if `payment_required` is true. */
-  stripe_client_secret?: string;
-  /** The Stripe PaymentIntent ID. Only present if `payment_required` is true. */
-  stripe_payment_intent?: string;
-  /** The Stripe PaymentMethod ID. Only present if `payment_required` is true. */
-  stripe_payment_method?: string;
-}
-
-export interface SubscriptionPurchaseParams extends PlanConfigurationParams {
-  /**
-   * `replace` (default; only for single-plan subscriptions) or `add` (adds
-   * the plan to the subscription).
-   */
-  behavior?: 'replace' | 'add';
-  /**
-   * Payment method: `null` uses the payment on file, a number is an existing
-   * Webshare PaymentMethod ID, and a string is a new Stripe PaymentMethod ID
-   * (usually `pm_...`).
-   */
-  payment_method?: number | string | null;
-  /** The recaptcha token. Only required when a payment is required. */
-  recaptcha?: string;
-}
-
-export interface SubscriptionRenewParams {
-  /** The payment method to use; null uses the payment on file. */
-  payment_method?: number | null;
-  /** The term to renew. */
-  term?: SubscriptionTerm;
-  /** The recaptcha token. Only required when a payment is required. */
-  recaptcha?: string;
-}
-
 export class Subscription extends APIResource {
   /** Returns the subscription object associated with the account. */
   get(options?: RequestOptions): Promise<SubscriptionObject> {
@@ -272,26 +227,6 @@ export class Subscription extends APIResource {
         path: '/api/v2/subscription/pricing/',
         query: { query: JSON.stringify(queryObject), plan_id },
       },
-      options,
-    );
-  }
-
-  /**
-   * Purchases a new plan. Requires recaptcha only when a payment is required
-   * (in which case the docs say to use the dashboard instead); when account
-   * credits cover the change, no recaptcha or payment is needed.
-   */
-  purchase(params: SubscriptionPurchaseParams, options?: RequestOptions): Promise<CheckoutResponse> {
-    return this._client.request(
-      { method: 'POST', path: '/api/v2/subscription/checkout/purchase/', body: params },
-      options,
-    );
-  }
-
-  /** Renews the subscription; adds to `subscription.renewals_paid`. */
-  renew(params: SubscriptionRenewParams, options?: RequestOptions): Promise<CheckoutResponse> {
-    return this._client.request(
-      { method: 'POST', path: '/api/v2/subscription/checkout/renew/', body: params },
       options,
     );
   }

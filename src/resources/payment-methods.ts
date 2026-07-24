@@ -44,39 +44,10 @@ export interface PaymentMethodListParams {
   page_size?: number;
 }
 
-export interface PaymentMethodCreateParams {
-  /** The recaptcha token (can be invisible recaptcha). */
-  recaptcha: string;
-}
-
-/**
- * Response of the update-payment-method (SetupIntent) flow. Confirm
- * `stripe_client_secret` via Stripe.js, then poll the pending payment.
- */
-export interface PaymentMethodCreateResponse {
-  /** The ID of the PendingPayment instance. */
-  pending_payment: number;
-  /** The client_secret for the Stripe SetupIntent. */
-  stripe_client_secret: string;
-  /** The Stripe SetupIntent ID (per the documented response fields). */
-  stripe_setup_intent?: string;
-  /** Shown in the docs' example response instead of `stripe_setup_intent`; the docs are inconsistent. */
-  stripe_payment_intent?: string;
-}
-
 export class PaymentMethods extends APIResource {
   /** Lists payment methods in paginated format. Polymorphic on `type`. */
   list(params?: PaymentMethodListParams, options?: RequestOptions): Promise<Page<PaymentMethod>> {
     return this._client.requestPage('/api/v2/payment/method/', { ...params }, options);
-  }
-
-  /**
-   * Starts the update-payment-method flow (a Stripe SetupIntent, not a
-   * charge). Requires recaptcha validation; the returned
-   * `stripe_client_secret` must be confirmed via Stripe.js.
-   */
-  create(params: PaymentMethodCreateParams, options?: RequestOptions): Promise<PaymentMethodCreateResponse> {
-    return this._client.request({ method: 'POST', path: '/api/v2/payment/method/', body: params }, options);
   }
 
   /** Retrieves a payment method by ID (the active one is on the subscription object). */

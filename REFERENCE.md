@@ -86,19 +86,6 @@ All methods accept an optional final `options` argument
 | `client.subusers.delete(id, { plan_id? }?)` | Delete a sub-user. | [docs](https://apidocs.webshare.io/subuser/delete) |
 | `client.subusers.refreshProxyList(id)` | Refresh a sub-user's custom proxy list. | [docs](https://apidocs.webshare.io/subuser/refresh_proxy_list) |
 
-## client.apiKeys
-
-Session-token-only: these endpoints return 403 `api_key_not_allowed` under
-API-key authentication.
-
-| Method | Description | Docs |
-|---|---|---|
-| `client.apiKeys.list(params?)` | List API keys (paginated). | [docs](https://apidocs.webshare.io/apikeys/list) |
-| `client.apiKeys.create({ label? })` | Create an API key (the only place the full key appears). | [docs](https://apidocs.webshare.io/apikeys/create) |
-| `client.apiKeys.get(id)` | Get an API key. | [docs](https://apidocs.webshare.io/apikeys/retrieve) |
-| `client.apiKeys.update(id, { label? })` | Update an API key's label. | [docs](https://apidocs.webshare.io/apikeys/update) |
-| `client.apiKeys.delete(id)` | Delete an API key. | [docs](https://apidocs.webshare.io/apikeys/delete) |
-
 ## client.profile
 
 | Method | Description | Docs |
@@ -117,48 +104,11 @@ API-key authentication.
 | `client.notifications.dismiss(id)` | Dismiss a notification. | [docs](https://apidocs.webshare.io/notifications/dismiss) |
 | `client.notifications.restore(id)` | Restore a dismissed notification. | [docs](https://apidocs.webshare.io/notifications/restore) |
 
-## client.auth
-
-The docs mark `register`, `login` and `deleteAccount` as dashboard-only
-(recaptcha-gated); they are included for completeness.
-
-| Method | Description | Docs |
-|---|---|---|
-| `client.auth.register(params)` | Register a local account (unauthenticated, recaptcha). | [docs](https://apidocs.webshare.io/registerandlogin/local-account) |
-| `client.auth.registerSocial(params)` | Register via a social provider (unauthenticated). | [docs](https://apidocs.webshare.io/registerandlogin/social-account) |
-| `client.auth.login(params)` | Sign in with a local account (unauthenticated, recaptcha). | [docs](https://apidocs.webshare.io/registerandlogin/local-account) |
-| `client.auth.loginSocial(params)` | Sign in via a social provider (unauthenticated). | [docs](https://apidocs.webshare.io/registerandlogin/social-account) |
-| `client.auth.logout()` | Invalidate the token used for the call. | [docs](https://apidocs.webshare.io/registerandlogin/logout) |
-| `client.auth.changePassword(params)` | Change the password (disables all other tokens). | [docs](https://apidocs.webshare.io/registerandlogin/change-password) |
-| `client.auth.requestPasswordReset(params)` | Request a password reset email (always 204). | [docs](https://apidocs.webshare.io/registerandlogin/reset-password) |
-| `client.auth.completePasswordReset(params)` | Complete a password reset; returns a new token. | [docs](https://apidocs.webshare.io/registerandlogin/reset-password) |
-| `client.auth.requestEmailChange(params)` | Request an email change. | [docs](https://apidocs.webshare.io/registerandlogin/change-email) |
-| `client.auth.completeEmailChange(params)` | Complete an email change (authenticated). | [docs](https://apidocs.webshare.io/registerandlogin/change-email) |
-| `client.auth.getActivation()` | Get the account activation status. | [docs](https://apidocs.webshare.io/registerandlogin/activate-account) |
-| `client.auth.resendActivation()` | Re-send the activation email. | [docs](https://apidocs.webshare.io/registerandlogin/activate-account) |
-| `client.auth.completeActivation(params)` | Complete activation; returns a new token. | [docs](https://apidocs.webshare.io/registerandlogin/activate-account) |
-| `client.auth.deleteAccount(params)` | Delete the account (recaptcha). | [docs](https://apidocs.webshare.io/registerandlogin/delete-account) |
-| `client.auth.deleteAccountSocial(params)` | Delete a social-provider account. | [docs](https://apidocs.webshare.io/registerandlogin/delete-social-account) |
-
-## client.twoFactorAuth
-
-`getMethod` is session-token-only (403 `api_key_not_allowed` with an API key).
-
-| Method | Description | Docs |
-|---|---|---|
-| `client.twoFactorAuth.getMethod()` | Get the active 2FA method. | [docs](https://apidocs.webshare.io/twofactorauth/get-2fa-method) |
-| `client.twoFactorAuth.changeMethod({ type })` | Change the 2FA method (`device_totp` returns a one-time `secret_key`). | [docs](https://apidocs.webshare.io/twofactorauth/change-2fa-method) |
-| `client.twoFactorAuth.activateMethod(id, { code_1, code_2 })` | Activate a TOTP device with two consecutive codes. | [docs](https://apidocs.webshare.io/twofactorauth/activate-2fa-method) |
-| `client.twoFactorAuth.submitCode({ code, recaptcha })` | Enter the 2FA code after a 403 `2fa_needed`. | [docs](https://apidocs.webshare.io/twofactorauth/enter-2fa-code) |
-| `client.twoFactorAuth.resendEmailCode()` | Re-send the email 2FA code. | [docs](https://apidocs.webshare.io/twofactorauth/resend-2fa-email) |
-
 ## client.idVerification
 
 | Method | Description | Docs |
 |---|---|---|
 | `client.idVerification.get()` | Get the ID verification state. | [docs](https://apidocs.webshare.io/idverification/retrieve) |
-| `client.idVerification.start()` | Start ID verification (Stripe Identity); returns `client_secret`. | [docs](https://apidocs.webshare.io/idverification/start) |
-| `client.idVerification.complete()` | Complete ID verification after Stripe JS finishes. | [docs](https://apidocs.webshare.io/idverification/complete) |
 
 ## client.verification
 
@@ -190,7 +140,6 @@ The docs mark `register`, `login` and `deleteAccount` as dashboard-only
 | Method | Description | Docs |
 |---|---|---|
 | `client.paymentMethods.list(params?)` | List payment methods (paginated; polymorphic on `type`). | [docs](https://apidocs.webshare.io/billing/payment_methods) |
-| `client.paymentMethods.create({ recaptcha })` | Start the update-payment-method flow (Stripe SetupIntent). | [docs](https://apidocs.webshare.io/billing/update_payment_method) |
 | `client.paymentMethods.get(id)` | Get a payment method. | [docs](https://apidocs.webshare.io/billing/payment_methods) |
 
 ## client.pendingPayments
@@ -215,8 +164,6 @@ The docs mark `register`, `login` and `deleteAccount` as dashboard-only
 | `client.subscription.getAvailableAssets()` | Get available assets per proxy category/subtype. | [docs](https://apidocs.webshare.io/subscription/assets) |
 | `client.subscription.customize(params)` | Get customization limits/options for a plan. | [docs](https://apidocs.webshare.io/subscription/customize) |
 | `client.subscription.pricing(params)` | Get pricing for a custom plan. | [docs](https://apidocs.webshare.io/subscription/pricing) |
-| `client.subscription.purchase(params)` | Purchase a plan (recaptcha only when a payment is required). | [docs](https://apidocs.webshare.io/subscription/purchase_plan) |
-| `client.subscription.renew(params)` | Renew the subscription. | [docs](https://apidocs.webshare.io/subscription/renew) |
 | `client.subscription.enableAutoRenewal()` | Enable auto-renewal (PUT). | [docs](https://apidocs.webshare.io/subscription/auto_renewal) |
 | `client.subscription.cancelAutoRenewal()` | Cancel auto-renewal (DELETE; returns the subscription). | [docs](https://apidocs.webshare.io/subscription/auto_renewal) |
 
@@ -227,7 +174,6 @@ The docs mark `register`, `login` and `deleteAccount` as dashboard-only
 | `client.plans.list(params?)` | List all plans, including cancelled ones (paginated). | [docs](https://apidocs.webshare.io/subscription/plan) |
 | `client.plans.get(id)` | Get a plan. | [docs](https://apidocs.webshare.io/subscription/plan) |
 | `client.plans.update(id, { automatic_refresh_next_at? })` | Update a plan (only `automatic_refresh_next_at`). | [docs](https://apidocs.webshare.io/subscription/plan) |
-| `client.plans.upgrade(id, params)` | Upgrade a plan (checkout-shaped response). | [docs](https://apidocs.webshare.io/subscription/plan) |
 | `client.plans.cancel(id)` | Cancel a plan (credits the subscription). | [docs](https://apidocs.webshare.io/subscription/plan) |
 
 ## client.invoices

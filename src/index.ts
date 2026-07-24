@@ -88,9 +88,6 @@ export type {
   SubuserScopeParams,
 } from './resources/subusers.js';
 
-export { APIKeys } from './resources/api-keys.js';
-export type { APIKey, APIKeyListParams, APIKeyCreateParams, APIKeyUpdateParams } from './resources/api-keys.js';
-
 export { Profile } from './resources/profile.js';
 export type {
   UserProfile,
@@ -101,34 +98,6 @@ export type {
 
 export { Notifications } from './resources/notifications.js';
 export type { Notification, NotificationListParams } from './resources/notifications.js';
-
-export { Auth } from './resources/auth.js';
-export type {
-  TokenResponse,
-  RegisterResponse,
-  ActivationStatus,
-  RegisterParams,
-  RegisterSocialParams,
-  LoginParams,
-  LoginSocialParams,
-  ChangePasswordParams,
-  RequestPasswordResetParams,
-  CompletePasswordResetParams,
-  RequestEmailChangeParams,
-  CompleteEmailChangeParams,
-  CompleteActivationParams,
-  DeleteAccountParams,
-  DeleteAccountSocialParams,
-} from './resources/auth.js';
-
-export { TwoFactorAuth } from './resources/two-factor-auth.js';
-export type {
-  TwoFactorAuthMethod,
-  ChangeTwoFactorMethodParams,
-  ActivateTwoFactorMethodParams,
-  SubmitTwoFactorCodeParams,
-  ResendTwoFactorEmailResponse,
-} from './resources/two-factor-auth.js';
 
 export { IDVerification } from './resources/id-verification.js';
 export type { IDVerificationObject, IDVerificationState } from './resources/id-verification.js';
@@ -173,8 +142,6 @@ export type {
   PaymentMethod,
   PaymentMethodBrand,
   PaymentMethodListParams,
-  PaymentMethodCreateParams,
-  PaymentMethodCreateResponse,
 } from './resources/payment-methods.js';
 
 export { PendingPayments } from './resources/pending-payments.js';
@@ -197,9 +164,6 @@ export type {
   PlanConfigurationParams,
   SubscriptionPricingParams,
   SubscriptionPricing,
-  CheckoutResponse,
-  SubscriptionPurchaseParams,
-  SubscriptionRenewParams,
 } from './resources/subscription.js';
 
 export { Plans } from './resources/plans.js';
@@ -207,7 +171,6 @@ export type {
   Plan,
   PlanListParams,
   PlanUpdateParams,
-  PlanUpgradeParams,
   PlanCancelResponse,
 } from './resources/plans.js';
 

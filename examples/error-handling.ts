@@ -18,8 +18,8 @@ try {
     console.log(`Not found (request ${err.requestID ?? 'n/a'}): ${err.detail}`);
   } else if (err instanceof PermissionDeniedError) {
     // Every call can hit these account-state 403 codes:
-    if (err.code === '2fa_needed') console.log('Two-factor authentication required.');
-    else if (err.code === 'account_suspended') console.log('Account suspended.');
+    if (err.code === 'account_suspended') console.log('Account suspended.');
+    else if (err.code === 'account_deleted') console.log('Account deleted.');
     else console.log(`Forbidden: ${err.detail}`);
   } else if (err instanceof RateLimitError) {
     console.log('Rate limited; the SDK already retried with backoff.');

@@ -29,21 +29,4 @@ export class IDVerification extends APIResource {
   get(options?: RequestOptions): Promise<IDVerificationObject> {
     return this._client.request({ method: 'GET', path: '/api/v2/idverification/' }, options);
   }
-
-  /**
-   * Starts a verification to receive the `client_secret`. Allowed only from
-   * the `requested` or `failed` state; on success the state becomes `pending`.
-   */
-  start(options?: RequestOptions): Promise<IDVerificationObject> {
-    return this._client.request({ method: 'POST', path: '/api/v2/idverification/start/', body: {} }, options);
-  }
-
-  /**
-   * Notifies the API to process a verification completed with Stripe JS. The
-   * state must be `pending`; on success it becomes `processing`. Returns a
-   * 400 error if the Stripe JS verification was not finished.
-   */
-  complete(options?: RequestOptions): Promise<IDVerificationObject> {
-    return this._client.request({ method: 'POST', path: '/api/v2/idverification/complete/', body: {} }, options);
-  }
 }
