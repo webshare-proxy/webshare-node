@@ -114,6 +114,28 @@ describe('request behavior', () => {
     expect(req.url).toBe('/api/v2/profile/');
   });
 
+  test('sends the default X-Webshare-Source header identifying SDK and runtime', async () => {
+    const client = makeClient();
+    server.respond(json(200, { id: 1 }));
+    await client.profile.get();
+    expect(server.lastRequest.headers['x-webshare-source']).toMatch(/^WebshareSDK\/\d+\.\d+\.\d+ \(Node; \d+\.\d+\.\d+\)$/);
+    expect(server.lastRequest.headers['x-webshare-source']).toContain(`WebshareSDK/${VERSION}`);
+  });
+
+  test('the source client option replaces the X-Webshare-Source value', async () => {
+    const client = makeClient({ source: 'WebshareCLI/1.2.3 (Node; 22.0.0)' });
+    server.respond(json(200, { id: 1 }));
+    await client.profile.get();
+    expect(server.lastRequest.headers['x-webshare-source']).toBe('WebshareCLI/1.2.3 (Node; 22.0.0)');
+  });
+
+  test('per-request headers override X-Webshare-Source', async () => {
+    const client = makeClient();
+    server.respond(json(200, { id: 1 }));
+    await client.profile.get({ headers: { 'X-Webshare-Source': 'custom/0.0.1' } });
+    expect(server.lastRequest.headers['x-webshare-source']).toBe('custom/0.0.1');
+  });
+
   test('calls the credentials provider per request (async provider)', async () => {
     let calls = 0;
     const client = new Webshare({

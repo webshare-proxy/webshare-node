@@ -29,6 +29,42 @@ The snippet uses top-level `await`, which requires an ESM context (a `.mjs`
 file or `"type": "module"` in package.json). In CommonJS, `require("webshare")`
 works the same way inside an `async` function.
 
+## Working with plans
+
+Most proxy operations are scoped to a plan. When `plan_id` is omitted the API
+falls back to the account's default plan, but the standard pattern is to list
+your plans, pick the one you want, and pass its id explicitly:
+
+```ts
+const plans = await client.plans.list();
+const plan = plans.results.find((p) => p.status === "active")!;
+
+const proxies = await client.proxies.list({ mode: "direct", plan_id: plan.id });
+const config = await client.proxyConfig.get({ plan_id: plan.id });
+const url = client.proxies.downloadURL({
+  token: config.proxy_list_download_token,
+  plan_id: plan.id,
+});
+```
+
+`plan_id` is accepted by the proxy list, proxy config/stats/status, download
+URLs, IP authorizations, sub-users, stats and replacement APIs. The plan id is
+also visible in the dashboard URL when viewing a plan. The active plan id for
+the account is available as `subscription.plan` on `client.subscription.get()`.
+
+## Key functions
+
+| Function | Description |
+|---|---|
+| `client.plans.list()` | List your plans; the id of the plan you pick scopes most other calls. |
+| `client.proxies.list({ mode, plan_id })` | List the proxies of a plan (paginated, async-iterable). |
+| `client.proxies.download({ token, plan_id })` | Download the proxy list as `address:port:username:password` text. |
+| `client.proxyConfig.get({ plan_id })` | Read a plan's proxy configuration (timeouts, IP-auth targeting, download token). |
+| `client.stats.aggregate({ plan_id })` | Aggregate proxy usage stats for a period. |
+| `buildProxyUrl(...)` | Pure helper that builds direct/backbone proxy connection URLs. |
+
+See [REFERENCE.md](./REFERENCE.md) for every method.
+
 ## Authentication
 
 Pass an API key explicitly, or set the `WEBSHARE_API_KEY` environment variable:
@@ -135,6 +171,13 @@ await client.proxies.list(
 
 Other client options: `baseURL` (default `https://proxy.webshare.io`),
 `fetch` (custom fetch implementation), `defaultHeaders`.
+
+## Request identification
+
+Every request carries an `X-Webshare-Source` header identifying the SDK and
+runtime only (e.g. `WebshareSDK/0.1.0 (Node; 22.14.0)`) — no user data. Tools
+built on the SDK can replace the whole value with the `source` client option;
+per-request headers take precedence as usual.
 
 ## Proxy connection helper
 

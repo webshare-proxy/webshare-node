@@ -96,6 +96,13 @@ export interface ClientOptions {
    * default only GET/PUT/DELETE requests are retried.
    */
   retryNonIdempotent?: boolean;
+  /**
+   * Value of the `X-Webshare-Source` header sent with every request for
+   * API-side caller identification. Defaults to
+   * `WebshareSDK/<version> (Node; <node version>)`. Replaces the whole
+   * value; per-request headers still take precedence.
+   */
+  source?: string;
 }
 
 /** Options accepted by every resource method as the final argument. */
@@ -176,6 +183,7 @@ export class Webshare {
   private readonly subuserId: string | number | undefined;
   private readonly federatedUserId: string | number | undefined;
   private readonly retryNonIdempotent: boolean;
+  private readonly source: string;
 
   readonly proxies: Proxies;
   readonly proxyConfig: ProxyConfig;
@@ -228,6 +236,7 @@ export class Webshare {
     this.subuserId = options.subuserId;
     this.federatedUserId = options.federatedUserId;
     this.retryNonIdempotent = options.retryNonIdempotent ?? false;
+    this.source = options.source ?? defaultSource();
 
     this.proxies = new Proxies(this);
     this.proxyConfig = new ProxyConfig(this);
@@ -410,6 +419,7 @@ export class Webshare {
     const headers = new Headers({
       'User-Agent': `webshare-node/${VERSION}`,
       Accept: 'application/json',
+      'X-Webshare-Source': this.source,
     });
     if (req.body !== undefined) {
       headers.set('Content-Type', 'application/json');
@@ -471,6 +481,15 @@ export class Webshare {
 
 function nonEmpty(value: string | undefined): string | undefined {
   return value !== undefined && value !== '' ? value : undefined;
+}
+
+/** Default `X-Webshare-Source` value identifying the SDK and runtime. */
+function defaultSource(): string {
+  const runtime =
+    typeof process !== 'undefined' && process.versions !== undefined && process.versions.node !== undefined
+      ? process.versions.node
+      : 'unknown';
+  return `WebshareSDK/${VERSION} (Node; ${runtime})`;
 }
 
 /** Builds the `Authorization` header value. Single place that knows the scheme. */
