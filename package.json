@@ -1,0 +1,64 @@
+{
+  "name": "webshare",
+  "version": "0.1.0",
+  "description": "Official Node.js/TypeScript SDK for the Webshare proxy API",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webshare-proxy/webshare-node.git"
+  },
+  "homepage": "https://github.com/webshare-proxy/webshare-node",
+  "bugs": {
+    "url": "https://github.com/webshare-proxy/webshare-node/issues"
+  },
+  "keywords": [
+    "webshare",
+    "proxy",
+    "proxies",
+    "api",
+    "sdk",
+    "residential-proxy",
+    "datacenter-proxy"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:integration": "vitest run tests/integration.test.ts",
+    "smoke": "bash scripts/smoke.sh",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsup": "^8.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
