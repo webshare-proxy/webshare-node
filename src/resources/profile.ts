@@ -29,6 +29,14 @@ export interface UserProfile {
   subscribed_survey_emails: boolean;
   /** Unique ID for this user; may be used to identify the user with external services. */
   tracking_id: string;
+  /** AnnounceKit user token. Observed on the live API but undocumented. */
+  announce_kit_user_token?: string;
+  /** Help Scout beacon signature. Observed on the live API but undocumented. */
+  helpscout_beacon_signature?: string;
+  /** Intercom identity-verification signature. Observed on the live API but undocumented. */
+  intercom_signature?: string;
+  /** Whether the account is a VIP customer. Observed on the live API but undocumented. */
+  is_vip_customer?: boolean;
   /** The date the user registered (read-only). */
   created_at: string;
   /** The timestamp when this instance was last updated. */
@@ -56,6 +64,10 @@ export interface UserPreferences {
   customer_satisfaction_survey_last_completed_at: string | null;
   /** When the onboarding activity page was viewed. May be null. */
   onboarding_activity_page_viewed_at: string | null;
+  /** Observed on the live API but undocumented. */
+  created_at?: string;
+  /** Observed on the live API but undocumented. */
+  updated_at?: string;
 }
 
 export interface PreferencesUpdateParams {

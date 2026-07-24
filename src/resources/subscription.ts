@@ -52,6 +52,8 @@ export interface SubscriptionObject {
   promo_value: number | null;
   /** Whether the subscription is throttled (usually high bandwidth with few proxies). */
   throttled: boolean;
+  /** Whether the subscription will renew at the end of the term. Observed on the live API but undocumented. */
+  will_renew?: boolean;
   created_at: string;
   updated_at: string;
 }

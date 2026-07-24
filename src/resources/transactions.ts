@@ -34,6 +34,8 @@ export interface Transaction {
   refund_amount: number;
   /** The date the last refund was issued. May be null. */
   refund_date: string | null;
+  /** Line items of the transaction. Observed on the live API (as null) but undocumented. */
+  line_items?: unknown[] | null;
   created_at: string;
   updated_at: string;
 }

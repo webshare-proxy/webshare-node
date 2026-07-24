@@ -102,7 +102,9 @@ try {
 ```
 
 `code` carries the API's machine-readable error code (e.g. `2fa_needed`,
-`account_suspended`), `fieldErrors` carries per-field validation messages,
+`account_suspended`, or `api_key_not_allowed` for the session-token-only
+endpoints such as `apiKeys.*` and `twoFactorAuth.getMethod`), `fieldErrors`
+carries per-field validation messages,
 `requestID` echoes the `X-Request-ID` response header, and `retryAfter`
 exposes the parsed `Retry-After` header in seconds (useful to self-throttle
 calls the SDK does not retry). A 2xx response whose body cannot be decoded

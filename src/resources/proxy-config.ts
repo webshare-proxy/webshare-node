@@ -12,6 +12,20 @@ export interface ProxyConfigV3 {
   ip_authorization_country_codes: string[] | null;
   /** City for IP authorization geo targeting (residential plans only). Null disables. */
   ip_authorization_city: string | null;
+  /**
+   * State for IP authorization geo targeting. Null disables. Mutually
+   * exclusive with the other IP authorization geo filters. Observed on the
+   * live API; referenced in the docs' mutual-exclusion notes but not in the
+   * field tables.
+   */
+  ip_authorization_state?: string | null;
+  /**
+   * Postal code for IP authorization geo targeting. Null disables. Mutually
+   * exclusive with the other IP authorization geo filters. Observed on the
+   * live API; referenced in the docs' mutual-exclusion notes but not in the
+   * field tables.
+   */
+  ip_authorization_postalcode?: string | null;
   /** ASN targeted for IP authorization in backbone mode. Null disables. */
   ip_authorization_asn: string | null;
   /** Auto-replace proxies that are invalid for 15 minutes. Cannot be edited for free plans. */
@@ -62,6 +76,10 @@ export interface ProxyConfigObject {
   request_idle_timeout: number;
   ip_authorization_country_codes: string[] | null;
   ip_authorization_city: string | null;
+  /** State for IP authorization geo targeting. Observed on the live API. */
+  ip_authorization_state?: string | null;
+  /** Postal code for IP authorization geo targeting. Observed on the live API. */
+  ip_authorization_postalcode?: string | null;
   ip_authorization_asn: string | null;
   auto_replace_invalid_proxies: boolean;
   auto_replace_low_country_confidence_proxies: boolean;
@@ -120,6 +138,16 @@ export interface ProxyConfigUpdateParams {
   ip_authorization_country_codes?: string[] | null;
   /** City for IP authorization geo targeting. Residential plans only. Null disables. */
   ip_authorization_city?: string | null;
+  /**
+   * State for IP authorization geo targeting. Mutually exclusive with the
+   * other IP authorization geo filters. Null disables.
+   */
+  ip_authorization_state?: string | null;
+  /**
+   * Postal code for IP authorization geo targeting. Mutually exclusive with
+   * the other IP authorization geo filters. Null disables.
+   */
+  ip_authorization_postalcode?: string | null;
   /** ASN for IP authorization targeting (`7922` or `AS7922`). Null disables. */
   ip_authorization_asn?: string | null;
   /** Cannot be edited for free proxy plans. */

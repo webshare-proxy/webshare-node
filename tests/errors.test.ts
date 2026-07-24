@@ -57,13 +57,40 @@ describe('error mapping', () => {
     expect((err as APIError).status).toBe(418);
   });
 
-  test('surfaces DRF field errors', async () => {
+  test('surfaces DRF field errors (documented list-of-strings shape)', async () => {
     const client = makeClient();
     server.respond(json(400, { mode: ['This field is required.'] }));
     const err = (await client.proxies.list({ mode: 'direct' }).catch((e: unknown) => e)) as APIError;
     expect(err).toBeInstanceOf(BadRequestError);
     expect(err.fieldErrors).toEqual({ mode: ['This field is required.'] });
     expect(err.detail).toContain('This field is required.');
+  });
+
+  test('surfaces field errors in the live list-of-objects shape', async () => {
+    const client = makeClient();
+    // Verbatim shape returned by the real API.
+    server.respond(json(400, { mode: [{ message: 'This field is required.', code: 'required' }] }));
+    const err = (await client.proxies.list({ mode: 'direct' }).catch((e: unknown) => e)) as APIError;
+    expect(err).toBeInstanceOf(BadRequestError);
+    expect(err.fieldErrors).toEqual({ mode: ['This field is required.'] });
+    expect(err.detail).toContain('This field is required.');
+    expect(err.body).toEqual({ mode: [{ message: 'This field is required.', code: 'required' }] });
+  });
+
+  test('accepts mixed string/object field-error lists', async () => {
+    const client = makeClient();
+    server.respond(
+      json(400, { password: ['Too short.', { message: 'Too common.', code: 'password_too_common' }] }),
+    );
+    const err = (await client.profile.get().catch((e: unknown) => e)) as APIError;
+    expect(err.fieldErrors).toEqual({ password: ['Too short.', 'Too common.'] });
+  });
+
+  test('requestID is null when no X-Request-ID header is present', async () => {
+    const client = makeClient();
+    server.respond(json(404, { detail: 'Not found.' }));
+    const err = (await client.profile.get().catch((e: unknown) => e)) as APIError;
+    expect(err.requestID).toBeNull();
   });
 
   test('surfaces the API error code (e.g. 2fa_needed) and X-Request-ID', async () => {

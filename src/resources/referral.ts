@@ -54,6 +54,18 @@ export interface ReferralConfig {
   promo_type: ReferralPromoType | null;
   /** The value of the promotion (10 or 20). Null if `promo_type` is null. */
   promo_value: number | null;
+  /**
+   * Commission rate (0-1) during the initial period. Observed on the live
+   * API but undocumented for the config object (documented on referral
+   * channels, where it is a decimal string; here it is a number).
+   */
+  initial_rate?: number;
+  /** Commission rate (0-1) after the initial period. Observed on the live API but undocumented. */
+  ongoing_rate?: number;
+  /** Length, in days, of the initial commission period. Observed on the live API but undocumented. */
+  initial_rate_period_days?: number;
+  /** Maximum USD commission from a single referred user. Observed on the live API but undocumented. */
+  max_earnings_per_referred?: number;
   created_at: string;
   updated_at: string;
 }

@@ -27,6 +27,12 @@ export interface Proxy {
   country_code: string;
   /** The city name of the proxy. */
   city_name: string;
+  /** ASN name of the proxy address. Observed on the live API but undocumented. */
+  asn_name?: string;
+  /** ASN number of the proxy address. Observed on the live API but undocumented. */
+  asn_number?: number;
+  /** Whether the proxy's country is known with high confidence. Observed on the live API but undocumented. */
+  high_country_confidence?: boolean;
   /** The timestamp of when this instance was created (ISO 8601). */
   created_at: string;
 }

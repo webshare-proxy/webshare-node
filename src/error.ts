@@ -135,13 +135,34 @@ function parseErrorBody(rawBody: string): {
     if (typeof record['code'] === 'string') code = record['code'];
     for (const [key, value] of Object.entries(record)) {
       if (key === 'detail' || key === 'code') continue;
-      if (Array.isArray(value) && value.length > 0 && value.every((v) => typeof v === 'string')) {
-        fieldErrors[key] = value as string[];
-      }
+      const messages = extractFieldErrorMessages(value);
+      if (messages !== null) fieldErrors[key] = messages;
     }
   }
 
   return { body, detail, code, fieldErrors };
+}
+
+/**
+ * Extracts the messages of one field-error entry. The live API returns lists
+ * of objects (`[{"message": "...", "code": "required"}]`) while the docs show
+ * lists of strings; both are accepted (mixed lists included).
+ */
+function extractFieldErrorMessages(value: unknown): string[] | null {
+  if (!Array.isArray(value) || value.length === 0) return null;
+  const messages: string[] = [];
+  for (const item of value) {
+    if (typeof item === 'string') {
+      messages.push(item);
+    } else if (item !== null && typeof item === 'object' && !Array.isArray(item)) {
+      const message = (item as Record<string, unknown>)['message'];
+      if (typeof message !== 'string') return null;
+      messages.push(message);
+    } else {
+      return null;
+    }
+  }
+  return messages;
 }
 
 function formatFieldErrors(fieldErrors: Record<string, string[]>): string | null {

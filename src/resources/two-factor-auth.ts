@@ -42,8 +42,20 @@ export interface ResendTwoFactorEmailResponse {
   email_sent: boolean;
 }
 
+/**
+ * Two-factor authentication. 2FA only applies to login tokens; API keys are
+ * never challenged.
+ *
+ * Note: the live API rejects `getMethod` under API-key authentication with
+ * 403 `{"code": "api_key_not_allowed"}` — it requires a session (login)
+ * token.
+ */
 export class TwoFactorAuth extends APIResource {
-  /** Returns the active 2FA method for the account (email 2FA is on by default). */
+  /**
+   * Returns the active 2FA method for the account (email 2FA is on by
+   * default). Session-token-only on the live API (403 `api_key_not_allowed`
+   * with an API key).
+   */
   getMethod(options?: RequestOptions): Promise<TwoFactorAuthMethod> {
     return this._client.request({ method: 'GET', path: '/api/v2/twofactorauth/method/current/' }, options);
   }

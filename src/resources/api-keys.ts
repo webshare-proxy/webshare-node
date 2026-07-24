@@ -31,6 +31,13 @@ export interface APIKeyUpdateParams {
   label?: string;
 }
 
+/**
+ * API key management.
+ *
+ * Note: the live API rejects these endpoints under API-key authentication
+ * with 403 `{"code": "api_key_not_allowed"}` ("Cannot query this API endpoint
+ * with an API key.") — they require a session (login) token.
+ */
 export class APIKeys extends APIResource {
   /** Lists API keys in paginated format. */
   list(params?: APIKeyListParams, options?: RequestOptions): Promise<Page<APIKey>> {
