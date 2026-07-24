@@ -8,6 +8,7 @@ import {
   NotFoundError,
   RateLimitError,
   InternalServerError,
+  ResponseDecodeError,
 } from '../src/index.js';
 import { TestServer, json, text } from './server.js';
 
@@ -98,5 +99,79 @@ describe('error mapping', () => {
     server.respond(json(400, { detail: 'nope', extra: 1 }));
     const err = (await client.profile.get().catch((e: unknown) => e)) as APIError;
     expect(err.body).toEqual({ detail: 'nope', extra: 1 });
+  });
+
+  test('exposes retryAfter (seconds) on non-retried errors', async () => {
+    const client = makeClient();
+    server.respond(json(429, { detail: 'Request was throttled.' }, { 'retry-after': '7' }));
+    const err = (await client.apiKeys.create({ label: 'k' }).catch((e: unknown) => e)) as APIError;
+    expect(err).toBeInstanceOf(RateLimitError);
+    expect(err.retryAfter).toBe(7);
+  });
+
+  test('parses HTTP-date Retry-After values into positive seconds', async () => {
+    const client = makeClient();
+    const future = new Date(Date.now() + 30_000).toUTCString();
+    server.respond(json(429, { detail: 'throttled' }, { 'retry-after': future }));
+    const err = (await client.apiKeys.create({ label: 'k' }).catch((e: unknown) => e)) as APIError;
+    expect(err.retryAfter).toBeGreaterThan(20);
+    expect(err.retryAfter).toBeLessThanOrEqual(30);
+  });
+
+  test.each([
+    ['   ', 'whitespace'],
+    ['-5', 'negative'],
+    ['soon', 'unparseable'],
+    [new Date(Date.now() - 60_000).toUTCString(), 'past HTTP-date'],
+  ])('treats Retry-After %j (%s) as absent', async (headerValue) => {
+    const client = makeClient();
+    server.respond(json(429, { detail: 'throttled' }, { 'retry-after': headerValue }));
+    const err = (await client.apiKeys.create({ label: 'k' }).catch((e: unknown) => e)) as APIError;
+    expect(err.retryAfter).toBeNull();
+  });
+
+  test('caps the captured error body at 1 MiB and detail at 2 KB', async () => {
+    const client = makeClient();
+    server.respond(text(400, 'x'.repeat(1_500_000)));
+    const err = (await client.profile.get().catch((e: unknown) => e)) as APIError;
+    expect(err).toBeInstanceOf(BadRequestError);
+    expect((err.body as string).length).toBe(1024 * 1024);
+    expect(err.detail.length).toBe(2048);
+    expect(err.message.length).toBeLessThan(3000);
+  });
+
+  test('truncates a long JSON detail to 2 KB', async () => {
+    const client = makeClient();
+    server.respond(json(400, { detail: 'd'.repeat(10_000) }));
+    const err = (await client.profile.get().catch((e: unknown) => e)) as APIError;
+    expect(err.detail.length).toBe(2048);
+    expect((err.body as { detail: string }).detail.length).toBe(10_000);
+  });
+});
+
+describe('success-path decode failures', () => {
+  test('a 2xx with a non-JSON body throws ResponseDecodeError, not a SyntaxError', async () => {
+    const client = makeClient();
+    server.respond(text(200, '<html>maintenance page</html>'));
+    const err = (await client.profile.get().catch((e: unknown) => e)) as ResponseDecodeError;
+    expect(err).toBeInstanceOf(ResponseDecodeError);
+    expect(err).not.toBeInstanceOf(SyntaxError);
+    expect(err.status).toBe(200);
+    expect(err.bodyText).toContain('<html>');
+  });
+
+  test('a malformed pagination envelope throws ResponseDecodeError', async () => {
+    const client = makeClient();
+    server.respond(json(200, { unexpected: 'shape' }));
+    const err = (await client.apiKeys.list().catch((e: unknown) => e)) as ResponseDecodeError;
+    expect(err).toBeInstanceOf(ResponseDecodeError);
+    expect(err.message).toContain('pagination envelope');
+  });
+
+  test('decode failures are not retried', async () => {
+    const client = new Webshare({ apiKey: 'test-key', baseURL: server.url, maxRetries: 2 });
+    server.respond(text(200, 'not json'));
+    await expect(client.profile.get()).rejects.toBeInstanceOf(ResponseDecodeError);
+    expect(server.requests).toHaveLength(1);
   });
 });

@@ -85,6 +85,22 @@ describe('retries', () => {
     expect(server.requests).toHaveLength(1);
   });
 
+  test('fetches credentials per attempt so refreshed tokens are used by retries', async () => {
+    let calls = 0;
+    const client = new Webshare({
+      baseURL: server.url,
+      credentials: () => {
+        calls += 1;
+        return `token-${calls}`;
+      },
+    });
+    server.respond(json(500, { detail: 'boom' }), json(200, { id: 1 }));
+    await client.profile.get();
+    expect(calls).toBe(2);
+    expect(server.requests[0]?.headers['authorization']).toBe('Token token-1');
+    expect(server.requests[1]?.headers['authorization']).toBe('Token token-2');
+  }, 10_000);
+
   test('retries connection errors on idempotent requests', async () => {
     // Point at a closed port to force a connection error, then verify no
     // successful response ever arrives but multiple attempts are made.

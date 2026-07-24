@@ -10,6 +10,7 @@ export {
   NotFoundError,
   RateLimitError,
   InternalServerError,
+  ResponseDecodeError,
   APIConnectionError,
   APIConnectionTimeoutError,
 } from './error.js';

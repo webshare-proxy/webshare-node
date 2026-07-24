@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { Webshare, WebshareError, APIConnectionTimeoutError, VERSION } from '../src/index.js';
-import { TestServer, json, page } from './server.js';
+import { TestServer, empty, json, page } from './server.js';
+import type { ServerResponse } from 'node:http';
 
 let server: TestServer;
 
@@ -44,6 +45,60 @@ describe('client construction', () => {
       if (saved !== undefined) process.env['WEBSHARE_API_KEY'] = saved;
       else delete process.env['WEBSHARE_API_KEY'];
     }
+  });
+
+  test('an empty-string apiKey is treated as absent and falls back to the environment', async () => {
+    const saved = process.env['WEBSHARE_API_KEY'];
+    process.env['WEBSHARE_API_KEY'] = 'env-key';
+    try {
+      const client = new Webshare({ apiKey: '', baseURL: server.url });
+      server.respond(json(200, { id: 1 }));
+      await client.profile.get();
+      expect(server.lastRequest.headers['authorization']).toBe('Token env-key');
+      delete process.env['WEBSHARE_API_KEY'];
+      expect(() => new Webshare({ apiKey: '' })).toThrow(WebshareError);
+    } finally {
+      if (saved !== undefined) process.env['WEBSHARE_API_KEY'] = saved;
+      else delete process.env['WEBSHARE_API_KEY'];
+    }
+  });
+});
+
+describe('unauthenticated mode', () => {
+  test('unauthenticated clients can call unauthenticated operations (no Authorization sent)', async () => {
+    const client = new Webshare({ unauthenticated: true, baseURL: server.url });
+    server.respond(json(200, { token: 't' }), json(200, { referral_code: 'x', promo_type: null, promo_value: null }));
+    await client.auth.login({ email: 'a@b.c', password: 'p', recaptcha: 'r' });
+    expect(server.lastRequest.headers['authorization']).toBeUndefined();
+    await client.referral.getCodeInfo({ referral_code: 'x' });
+    expect(server.lastRequest.headers['authorization']).toBeUndefined();
+  });
+
+  test('authenticated operations on an unauthenticated client fail client-side with a clear error', async () => {
+    const client = new Webshare({ unauthenticated: true, baseURL: server.url });
+    await expect(client.profile.get()).rejects.toThrow(/unauthenticated: true/);
+    expect(server.requests).toHaveLength(0);
+  });
+
+  test('auth-optional operations send credentials when available, none otherwise', async () => {
+    const authed = makeClient();
+    server.respond(json(200, { token: 't' }));
+    await authed.auth.completeActivation({ activation_token: 'x' });
+    expect(server.lastRequest.headers['authorization']).toBe('Token test-key');
+
+    const anonymous = new Webshare({ unauthenticated: true, baseURL: server.url });
+    server.respond(json(200, { token: 't' }));
+    await anonymous.auth.completeActivation({ activation_token: 'x' });
+    expect(server.lastRequest.headers['authorization']).toBeUndefined();
+  });
+
+  test('a credentialed client never sends Authorization on security-exempt operations', async () => {
+    const client = makeClient();
+    server.respond(empty(204), json(200, { token: 't' }));
+    await client.auth.requestPasswordReset({ email: 'a@b.c', recaptcha: 'r' });
+    expect(server.lastRequest.headers['authorization']).toBeUndefined();
+    await client.auth.completePasswordReset({ password: 'p', password_reset_token: 't', recaptcha: 'r' });
+    expect(server.lastRequest.headers['authorization']).toBeUndefined();
   });
 });
 
@@ -132,6 +187,27 @@ describe('request behavior', () => {
     const controller = new AbortController();
     const promise = client.profile.get({ signal: controller.signal });
     setTimeout(() => controller.abort(), 30);
+    await expect(promise).rejects.toThrow(/abort/i);
+  });
+
+  test('timeout covers the response body read (headers arrive, body stalls)', async () => {
+    const client = makeClient({ timeout: 150, maxRetries: 0 });
+    server.respond((_req, res: ServerResponse) => {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.write('{"id":'); // partial body, never finished
+    });
+    await expect(client.profile.get()).rejects.toBeInstanceOf(APIConnectionTimeoutError);
+  });
+
+  test('abort interrupts a stalled response body read', async () => {
+    const client = makeClient({ maxRetries: 0 });
+    server.respond((_req, res: ServerResponse) => {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.write('{"id":'); // partial body, never finished
+    });
+    const controller = new AbortController();
+    const promise = client.profile.get({ signal: controller.signal });
+    setTimeout(() => controller.abort(), 50);
     await expect(promise).rejects.toThrow(/abort/i);
   });
 

@@ -25,6 +25,10 @@ const page = await client.proxies.list({ mode: "direct" });
 console.log(page.results[0]);
 ```
 
+The snippet uses top-level `await`, which requires an ESM context (a `.mjs`
+file or `"type": "module"` in package.json). In CommonJS, `require("webshare")`
+works the same way inside an `async` function.
+
 ## Authentication
 
 Pass an API key explicitly, or set the `WEBSHARE_API_KEY` environment variable:
@@ -40,7 +44,13 @@ provider; it is called once per request:
 const client = new Webshare({ credentials: async () => refreshTokenSomehow() });
 ```
 
-The constructor throws if no credential is available.
+The constructor throws if no credential is available (an empty-string
+`apiKey` is treated as absent). To use only endpoints that require no
+authentication (e.g. `auth.login`, `referral.getCodeInfo`, the download
+endpoints), opt out explicitly with `new Webshare({ unauthenticated: true })`;
+calling an authenticated endpoint on such a client throws a clear
+client-side error. Operations the API documents as unauthenticated never
+send the `Authorization` header, even on a credentialed client.
 
 ### Acting as a sub-user or federated user
 
@@ -93,7 +103,10 @@ try {
 
 `code` carries the API's machine-readable error code (e.g. `2fa_needed`,
 `account_suspended`), `fieldErrors` carries per-field validation messages,
-and `requestID` echoes the `X-Request-ID` response header.
+`requestID` echoes the `X-Request-ID` response header, and `retryAfter`
+exposes the parsed `Retry-After` header in seconds (useful to self-throttle
+calls the SDK does not retry). A 2xx response whose body cannot be decoded
+throws `ResponseDecodeError`.
 
 ## Retries and timeouts
 
@@ -102,10 +115,14 @@ exponential backoff and full jitter, on connection errors, timeouts, 408,
 429 and 5xx responses. A `Retry-After` response header is honored (capped at
 60 seconds). Only idempotent requests (GET/PUT/DELETE) are retried by
 default; opt in for POST/PATCH with `retryNonIdempotent` on the client or per
-request.
+request. Note for multipart endpoints: in-memory `File`/`Blob` uploads are
+safely re-sent on retry, but stream-backed blobs (e.g. `fs.openAsBlob()`)
+may not be replayable — avoid `retryNonIdempotent` with those.
 
-The default request timeout is 60 seconds. Every method accepts per-request
-options as its final argument:
+`timeout` bounds a single HTTP attempt (default 60 seconds), including
+reading the response body; the total call time may exceed it when retries
+and `Retry-After` waits apply. Every method accepts per-request options as
+its final argument:
 
 ```ts
 await client.proxies.list(

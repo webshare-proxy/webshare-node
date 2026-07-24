@@ -66,6 +66,21 @@ describe('pagination', () => {
     await expect(second.nextPage()).rejects.toBeInstanceOf(WebshareError);
   });
 
+  test('refuses to follow a cross-origin next URL and never sends credentials there', async () => {
+    const foreign = await new TestServer().start();
+    try {
+      const client = makeClient();
+      server.respond(page([{ id: 1 }], { count: 2, next: `${foreign.url}/api/v2/apikey/?page=2` }));
+      const first = await client.apiKeys.list();
+      expect(first.hasNextPage()).toBe(true);
+      await expect(first.nextPage()).rejects.toThrow(WebshareError);
+      await expect(first.nextPage()).rejects.toThrow(/cross-origin/);
+      expect(foreign.requests).toHaveLength(0);
+    } finally {
+      await foreign.close();
+    }
+  });
+
   test('supports the starting_after variant (proxy activity) with the same Page type', async () => {
     const client = makeClient();
     server.respond(

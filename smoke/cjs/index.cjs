@@ -20,6 +20,8 @@ const err = new NotFoundError(404, 'missing');
 assert.ok(err instanceof APIError);
 assert.ok(err instanceof WebshareError);
 
+delete process.env.WEBSHARE_API_KEY;
 assert.throws(() => new Webshare({ apiKey: '' }), WebshareError);
+assert.doesNotThrow(() => new Webshare({ unauthenticated: true }));
 
 console.log('cjs smoke ok');

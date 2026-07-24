@@ -230,7 +230,10 @@ export class Auth extends APIResource {
    * optional but encouraged; this client sends its credentials.
    */
   completeActivation(params: CompleteActivationParams, options?: RequestOptions): Promise<TokenResponse> {
-    return this._client.request({ method: 'POST', path: '/api/v2/activation/complete/', body: params }, options);
+    return this._client.request(
+      { method: 'POST', path: '/api/v2/activation/complete/', body: params, auth: 'optional' },
+      options,
+    );
   }
 
   /**
