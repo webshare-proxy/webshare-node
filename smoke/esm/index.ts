@@ -8,8 +8,8 @@ import WebshareDefault, {
   WebshareError,
   buildProxyUrl,
   buildProxyListDownloadUrl,
-} from 'webshare';
-import type { ClientOptions, Proxy, ProxyListParams, RequestOptions, SubscriptionObject } from 'webshare';
+} from '@webshare-proxy/sdk';
+import type { ClientOptions, Proxy, ProxyListParams, RequestOptions, SubscriptionObject } from '@webshare-proxy/sdk';
 
 const options: ClientOptions = { apiKey: 'smoke-key', maxRetries: 1, timeout: 5_000 };
 const client = new Webshare(options);

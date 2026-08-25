@@ -1,7 +1,7 @@
 // CommonJS consumer smoke test: verifies the require entry of the exports map.
 'use strict';
 const assert = require('node:assert');
-const webshare = require('webshare');
+const webshare = require('@webshare-proxy/sdk');
 const { Webshare, APIError, WebshareError, NotFoundError, buildProxyUrl } = webshare;
 
 assert.strictEqual(webshare.default, Webshare, 'default export should be the Webshare class');
