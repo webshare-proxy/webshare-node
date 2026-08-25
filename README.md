@@ -3,7 +3,7 @@
 Official Node.js/TypeScript SDK for the [Webshare](https://www.webshare.io) proxy API.
 
 [![CI](https://github.com/webshare-proxy/webshare-node/actions/workflows/ci.yml/badge.svg)](https://github.com/webshare-proxy/webshare-node/actions/workflows/ci.yml)
-[![npm version](https://img.shields.io/npm/v/webshare.svg)](https://www.npmjs.com/package/webshare)
+[![npm version](https://img.shields.io/npm/v/@webshare-proxy/sdk.svg)](https://www.npmjs.com/package/@webshare-proxy/sdk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
 TypeScript-first, zero runtime dependencies, built on the global `fetch` (Node 20+).
@@ -12,13 +12,13 @@ Ships ESM and CommonJS builds with full type declarations.
 ## Install
 
 ```sh
-npm install webshare
+npm install @webshare-proxy/sdk
 ```
 
 ## Quickstart
 
 ```ts
-import { Webshare } from "webshare";
+import { Webshare } from "@webshare-proxy/sdk";
 
 const client = new Webshare(); // reads WEBSHARE_API_KEY from the environment
 const page = await client.proxies.list({ mode: "direct" });
@@ -26,7 +26,7 @@ console.log(page.results[0]);
 ```
 
 The snippet uses top-level `await`, which requires an ESM context (a `.mjs`
-file or `"type": "module"` in package.json). In CommonJS, `require("webshare")`
+file or `"type": "module"` in package.json). In CommonJS, `require("@webshare-proxy/sdk")`
 works the same way inside an `async` function.
 
 ## Working with plans
@@ -124,7 +124,7 @@ throw an `APIError` subclass by status: `BadRequestError` (400),
 failures throw `APIConnectionError` / `APIConnectionTimeoutError`.
 
 ```ts
-import { APIError, PermissionDeniedError } from "webshare";
+import { APIError, PermissionDeniedError } from "@webshare-proxy/sdk";
 
 try {
   await client.profile.get();
@@ -187,7 +187,7 @@ connection modes, including the backbone username parameter grammar
 (countries, city, sticky sessions, rotation):
 
 ```ts
-import { buildProxyUrl } from "webshare";
+import { buildProxyUrl } from "@webshare-proxy/sdk";
 
 buildProxyUrl({ mode: "direct", username: "user", password: "pass", proxyAddress: "1.2.3.4", port: 8168 });
 // "http://user:pass@1.2.3.4:8168"
@@ -225,7 +225,7 @@ Runnable examples live in [`examples/`](./examples) (`npx tsx examples/list-prox
 
 | SDK | Node.js |
 |---|---|
-| webshare 0.x | 20, 22, 24 |
+| @webshare-proxy/sdk 0.x | 20, 22, 24 |
 
 ## License
 

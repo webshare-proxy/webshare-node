@@ -6,6 +6,12 @@ adheres to [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-08-25
+
+### Fixed
+
+- Correct README install command and import examples to the scoped package name `@webshare-proxy/sdk` (the npm listing previously showed the pre-rename `webshare` name).
+
 ## [0.1.1] - 2026-08-25
 
 ### Changed
