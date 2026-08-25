@@ -1,5 +1,5 @@
 {
-  "name": "webshare",
+  "name": "@webshare-proxy/sdk",
   "version": "0.1.0",
   "description": "Official Node.js/TypeScript SDK for the Webshare proxy API",
   "license": "MIT",
@@ -21,6 +21,10 @@
     "datacenter-proxy"
   ],
   "type": "module",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
