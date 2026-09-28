@@ -206,7 +206,7 @@ credentials; unauthenticated endpoints only), `baseURL` (default
 `https://proxy.webshare.io`), `timeout` (per-attempt, default 60s),
 `maxRetries` (default 2), `fetch`, `defaultHeaders`, `subuserId`
 (`X-Subuser`), `federatedUserId` (`X-Webshare-Federated-Access`),
-`retryNonIdempotent`, `source` (`X-Webshare-Source` value).
+`retryNonIdempotent`, `source` (the product token leading the `User-Agent`).
 
 ## Per-request options
 
