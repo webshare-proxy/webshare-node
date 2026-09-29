@@ -175,10 +175,11 @@ Other client options: `baseURL` (default `https://proxy.webshare.io`),
 
 ## Request identification
 
-Every request carries an `X-Webshare-Source` header identifying the SDK and
-runtime only (e.g. `WebshareSDK/0.1.0 (Node; 22.14.0)`) — no user data. Tools
-built on the SDK can replace the whole value with the `source` client option;
-per-request headers take precedence as usual.
+Every request carries a `User-Agent` that leads with a product token
+identifying the caller, followed by the library: `WebshareSDK/0.1.0 (Node;
+22.14.0) webshare-node/0.1.0`. It names the SDK and the runtime only, no user
+data. Tools built on the SDK can replace the product token with the `source`
+client option; per-request headers take precedence as usual.
 
 ## Proxy connection helper
 

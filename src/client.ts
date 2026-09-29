@@ -94,10 +94,10 @@ export interface ClientOptions {
    */
   retryNonIdempotent?: boolean;
   /**
-   * Value of the `X-Webshare-Source` header sent with every request for
+   * Product token that leads the `User-Agent` sent with every request, for
    * API-side caller identification. Defaults to
    * `WebshareSDK/<version> (Node; <node version>)`. Replaces the whole
-   * value; per-request headers still take precedence.
+   * token; per-request headers still take precedence.
    */
   source?: string;
 }
@@ -405,9 +405,10 @@ export class Webshare {
 
   private async buildHeaders(req: APIRequest, options: RequestOptions): Promise<Headers> {
     const headers = new Headers({
-      'User-Agent': `webshare-node/${VERSION}`,
+      // The product token leads, so the API can tell a tool built on the SDK from a
+      // plain SDK call; the library that carried it follows.
+      'User-Agent': `${this.source} webshare-node/${VERSION}`,
       Accept: 'application/json',
-      'X-Webshare-Source': this.source,
     });
     if (req.body !== undefined) {
       headers.set('Content-Type', 'application/json');
@@ -468,7 +469,7 @@ function nonEmpty(value: string | undefined): string | undefined {
   return value !== undefined && value !== '' ? value : undefined;
 }
 
-/** Default `X-Webshare-Source` value identifying the SDK and runtime. */
+/** Default product token for the `User-Agent`, identifying the SDK and runtime. */
 function defaultSource(): string {
   const runtime =
     typeof process !== 'undefined' && process.versions !== undefined && process.versions.node !== undefined

@@ -99,31 +99,36 @@ describe('request behavior', () => {
     await client.profile.get();
     const req = server.lastRequest;
     expect(req.headers['authorization']).toBe('Token test-key');
-    expect(req.headers['user-agent']).toBe(`webshare-node/${VERSION}`);
+    expect(req.headers['user-agent']).toContain(`webshare-node/${VERSION}`);
     expect(req.headers['accept']).toBe('application/json');
     expect(req.url).toBe('/api/v2/profile/');
   });
 
-  test('sends the default X-Webshare-Source header identifying SDK and runtime', async () => {
+  test('sends a User-Agent identifying the product, the SDK and the runtime', async () => {
     const client = makeClient();
     server.respond(json(200, { id: 1 }));
     await client.profile.get();
-    expect(server.lastRequest.headers['x-webshare-source']).toMatch(/^WebshareSDK\/\d+\.\d+\.\d+ \(Node; \d+\.\d+\.\d+\)$/);
-    expect(server.lastRequest.headers['x-webshare-source']).toContain(`WebshareSDK/${VERSION}`);
+    expect(server.lastRequest.headers['user-agent']).toMatch(
+      /^WebshareSDK\/\d+\.\d+\.\d+ \(Node; \d+\.\d+\.\d+\) webshare-node\/\d+\.\d+\.\d+$/,
+    );
+    expect(server.lastRequest.headers['user-agent']).toContain(`WebshareSDK/${VERSION}`);
+    expect(server.lastRequest.headers['x-webshare-source']).toBeUndefined();
   });
 
-  test('the source client option replaces the X-Webshare-Source value', async () => {
+  test('the source client option replaces the product token of the User-Agent', async () => {
     const client = makeClient({ source: 'WebshareCLI/1.2.3 (Node; 22.0.0)' });
     server.respond(json(200, { id: 1 }));
     await client.profile.get();
-    expect(server.lastRequest.headers['x-webshare-source']).toBe('WebshareCLI/1.2.3 (Node; 22.0.0)');
+    expect(server.lastRequest.headers['user-agent']).toBe(
+      `WebshareCLI/1.2.3 (Node; 22.0.0) webshare-node/${VERSION}`,
+    );
   });
 
-  test('per-request headers override X-Webshare-Source', async () => {
+  test('per-request headers override the User-Agent', async () => {
     const client = makeClient();
     server.respond(json(200, { id: 1 }));
-    await client.profile.get({ headers: { 'X-Webshare-Source': 'custom/0.0.1' } });
-    expect(server.lastRequest.headers['x-webshare-source']).toBe('custom/0.0.1');
+    await client.profile.get({ headers: { 'User-Agent': 'custom/0.0.1' } });
+    expect(server.lastRequest.headers['user-agent']).toBe('custom/0.0.1');
   });
 
   test('calls the credentials provider per request (async provider)', async () => {
