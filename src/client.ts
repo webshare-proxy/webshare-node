@@ -30,7 +30,7 @@ import { Plans } from './resources/plans.js';
 import { Invoices } from './resources/invoices.js';
 import { Referral } from './resources/referral.js';
 
-export const VERSION = '0.1.0';
+export const VERSION = '0.2.0';
 
 /**
  * Returns the token part of the `Authorization` header. Called once per

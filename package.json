@@ -1,6 +1,6 @@
 {
   "name": "@webshare-proxy/sdk",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Official Node.js/TypeScript SDK for the Webshare proxy API",
   "license": "MIT",
   "repository": {

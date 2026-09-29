@@ -6,6 +6,8 @@ adheres to [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-29
+
 ### Changed
 
 - The caller identification moved from the `X-Webshare-Source` header into `User-Agent`, which now leads with the product token and ends with the library: `WebshareSDK/<version> (Node; <node version>) webshare-node/<version>`. The `source` client option is unchanged and still replaces that product token.
